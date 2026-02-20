@@ -1,12 +1,19 @@
 <script lang="ts">
-  import {
-    brushRadius, brushStrength, flattenTarget, noiseScale,
-    activeTool, updateBrushParams
-  } from '$lib/stores/terrain';
+  import * as store from '$lib/stores/terrain';
 
-  // Reactively push params to Rust whenever any slider changes
+  // Local copies of store state — Svelte 5 can't bind:value directly to imported $state runes
+  let radius   = $state(store.brushRadius);
+  let strength = $state(store.brushStrength);
+  let flatten  = $state(store.flattenTarget);
+  let noise    = $state(store.noiseScale);
+
+  // Push local values back to store + Tauri whenever they change
   $effect(() => {
-    void updateBrushParams();
+    store.brushRadius   = radius;
+    store.brushStrength = strength;
+    store.flattenTarget = flatten;
+    store.noiseScale    = noise;
+    void store.updateBrushParams();
   });
 </script>
 
@@ -16,40 +23,40 @@
   <div class="field">
     <label>Radius</label>
     <div class="row">
-      <input type="range" min="4" max="200" step="1" bind:value={brushRadius} />
-      <span class="val">{brushRadius}px</span>
+      <input type="range" min="4" max="200" step="1" bind:value={radius} />
+      <span class="val">{radius}px</span>
     </div>
   </div>
 
   <div class="field">
     <label>Strength</label>
     <div class="row">
-      <input type="range" min="0.01" max="1" step="0.01" bind:value={brushStrength} />
-      <span class="val">{(brushStrength * 100).toFixed(0)}%</span>
+      <input type="range" min="0.01" max="1" step="0.01" bind:value={strength} />
+      <span class="val">{(strength * 100).toFixed(0)}%</span>
     </div>
   </div>
 
-  {#if activeTool === 'flatten'}
+  {#if store.activeTool === 'flatten'}
     <div class="field">
       <label>Flatten target</label>
       <div class="row">
-        <input type="range" min="0" max="1" step="0.01" bind:value={flattenTarget} />
-        <span class="val">{(flattenTarget * 100).toFixed(0)}%</span>
+        <input type="range" min="0" max="1" step="0.01" bind:value={flatten} />
+        <span class="val">{(flatten * 100).toFixed(0)}%</span>
       </div>
     </div>
   {/if}
 
-  {#if activeTool === 'noise'}
+  {#if store.activeTool === 'noise'}
     <div class="field">
       <label>Noise scale</label>
       <div class="row">
-        <input type="range" min="0.005" max="0.3" step="0.005" bind:value={noiseScale} />
-        <span class="val">{noiseScale.toFixed(3)}</span>
+        <input type="range" min="0.005" max="0.3" step="0.005" bind:value={noise} />
+        <span class="val">{noise.toFixed(3)}</span>
       </div>
     </div>
   {/if}
 
-  {#if !activeTool}
+  {#if !store.activeTool}
     <p class="hint">Select a tool above to start painting</p>
   {/if}
 </div>
