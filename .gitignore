@@ -1,0 +1,17 @@
+# SvelteKit
+.svelte-kit/
+build/
+node_modules/
+
+# Tauri
+src-tauri/target/
+src-tauri/gen/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

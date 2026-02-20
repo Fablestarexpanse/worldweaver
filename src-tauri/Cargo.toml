@@ -1,0 +1,61 @@
+[package]
+name = "worldweaver"
+version = "0.2.0"
+description = "WorldWeaver — GPU-accelerated terrain world builder"
+authors = ["Fablestar Expanse"]
+edition = "2021"
+rust-version = "1.80"
+
+[lib]
+name = "worldweaver_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# ── Tauri shell ──────────────────────────────────────────────────────────────
+tauri = { version = "2", features = ["devtools"] }
+tauri-plugin-dialog = "2"
+tauri-plugin-fs = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+
+# ── GPU rendering ────────────────────────────────────────────────────────────
+wgpu = { version = "22", features = [] }
+bytemuck = { version = "1", features = ["derive"] }
+pollster = "0.3"
+winit = "0.30"
+
+# ── Terrain generation ───────────────────────────────────────────────────────
+noise = "0.9"
+rand = { version = "0.8", features = ["small_rng"] }
+rayon = "1"
+
+# ── Compression / persistence ─────────────────────────────────────────────────
+zstd = "0.13"
+rusqlite = { version = "0.31", features = ["bundled"] }
+bincode = "1"
+
+# ── Utilities ────────────────────────────────────────────────────────────────
+anyhow = "1"
+thiserror = "1"
+log = "0.4"
+env_logger = "0.11"
+uuid = { version = "1", features = ["v4", "serde"] }
+parking_lot = "0.12"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[package.metadata.bundle]
+name            = "WorldWeaver"
+identifier      = "com.fablestar.worldweaver"
+icon            = ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+resources       = []
+copyright       = "© 2025 Fablestar Expanse"
+category        = "developer-tool"
+short_description = "GPU-accelerated world builder"
+long_description  = "GPU-accelerated procedural terrain world builder using wgpu."
