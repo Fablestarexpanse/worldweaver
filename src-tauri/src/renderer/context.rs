@@ -106,7 +106,12 @@ impl WgpuContext {
             .request_device(
                 &wgpu::DeviceDescriptor {
                     label: Some("WorldWeaver Device"),
-                    required_features: wgpu::Features::empty(),
+                    // TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES is needed for:
+                    //   • R32Float as a read-write storage texture (compute brushes)
+                    //   • R32Float as a filterable texture (render sampling)
+                    // This is a native-only feature, available on DX12/Vulkan/Metal.
+                    required_features:
+                        wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES,
                     required_limits: wgpu::Limits::default(),
                     memory_hints: Default::default(),
                 },
