@@ -259,10 +259,10 @@ impl WgpuContext {
                         },
                         count: None,
                     },
-                    // binding 4: uniforms
+                    // binding 4: uniforms (needed by both vertex and fragment stages)
                     wgpu::BindGroupLayoutEntry {
                         binding: 4,
-                        visibility: wgpu::ShaderStages::FRAGMENT,
+                        visibility: wgpu::ShaderStages::VERTEX | wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Buffer {
                             ty: wgpu::BufferBindingType::Uniform,
                             has_dynamic_offset: false,
