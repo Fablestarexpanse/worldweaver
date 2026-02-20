@@ -5,7 +5,7 @@
   import BrushPanel   from '$lib/components/BrushPanel.svelte';
   import FilePanel    from '$lib/components/FilePanel.svelte';
 
-  import { status, statusClass, terrainInfo, undoStroke } from '$lib/stores/terrain';
+  import { s, undoStroke } from '$lib/stores/terrain.svelte';
 
   // Global Ctrl+Z → undo
   function onKeydown(e: KeyboardEvent) {
@@ -22,10 +22,10 @@
   <!-- ── Header ──────────────────────────────────────────────────────── -->
   <header>
     <span class="logo">🌍 WorldWeaver</span>
-    {#if terrainInfo}
+    {#if s.terrainInfo}
       <span class="world-info">
-        {terrainInfo.worldWidth}×{terrainInfo.worldHeight}
-        · Sea {(terrainInfo.seaLevel * 100).toFixed(0)}%
+        {s.terrainInfo.worldWidth}×{s.terrainInfo.worldHeight}
+        · Sea {(s.terrainInfo.seaLevel * 100).toFixed(0)}%
       </span>
     {/if}
   </header>
@@ -40,7 +40,7 @@
 
   <!-- ── Status bar ─────────────────────────────────────────────────── -->
   <footer>
-    <span class="status {statusClass}">{status}</span>
+    <span class="status {s.statusClass}">{s.status}</span>
   </footer>
 </main>
 

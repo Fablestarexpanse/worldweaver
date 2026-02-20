@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { terrainConfig, generating, generateTerrain, DEFAULT_CONFIG } from '$lib/stores/terrain';
+  import { s, generateTerrain, DEFAULT_CONFIG } from '$lib/stores/terrain.svelte';
 
   let showAdvanced = $state(false);
 
   function randomSeed() {
-    terrainConfig.seed = Math.floor(Math.random() * 0xFFFFFFFF);
+    s.config.seed = Math.floor(Math.random() * 0xFFFFFFFF);
   }
 </script>
 
@@ -14,28 +14,28 @@
   <div class="field">
     <label>Width × Height (px)</label>
     <div class="row">
-      <input type="number" min="128" max="4096" step="128" bind:value={terrainConfig.worldWidth} />
+      <input type="number" min="128" max="4096" step="128" bind:value={s.config.worldWidth} />
       <span style="color:var(--text-muted); padding:0 4px">×</span>
-      <input type="number" min="128" max="4096" step="128" bind:value={terrainConfig.worldHeight} />
+      <input type="number" min="128" max="4096" step="128" bind:value={s.config.worldHeight} />
     </div>
   </div>
 
   <div class="field">
     <label>Seed</label>
     <div class="row">
-      <input type="number" bind:value={terrainConfig.seed} />
+      <input type="number" bind:value={s.config.seed} />
       <button onclick={randomSeed} title="Random seed" style="flex:0;padding:4px 8px">🎲</button>
     </div>
   </div>
 
   <div class="field">
-    <label>Sea level ({(terrainConfig.seaLevel * 100).toFixed(0)}%)</label>
-    <input type="range" min="0.1" max="0.8" step="0.01" bind:value={terrainConfig.seaLevel} />
+    <label>Sea level ({(s.config.seaLevel * 100).toFixed(0)}%)</label>
+    <input type="range" min="0.1" max="0.8" step="0.01" bind:value={s.config.seaLevel} />
   </div>
 
   <div class="field">
     <label>Max elevation (m)</label>
-    <input type="number" min="100" max="9000" step="100" bind:value={terrainConfig.maxElevation} />
+    <input type="number" min="100" max="9000" step="100" bind:value={s.config.maxElevation} />
   </div>
 
   <button class="toggle" onclick={() => showAdvanced = !showAdvanced}>
@@ -46,28 +46,28 @@
     <div class="advanced">
       <div class="field">
         <label>Octaves</label>
-        <input type="range" min="1" max="12" step="1" bind:value={terrainConfig.octaves} />
-        <span class="val">{terrainConfig.octaves}</span>
+        <input type="range" min="1" max="12" step="1" bind:value={s.config.octaves} />
+        <span class="val">{s.config.octaves}</span>
       </div>
       <div class="field">
         <label>Frequency</label>
-        <input type="range" min="0.5" max="8" step="0.1" bind:value={terrainConfig.frequency} />
-        <span class="val">{terrainConfig.frequency.toFixed(1)}</span>
+        <input type="range" min="0.5" max="8" step="0.1" bind:value={s.config.frequency} />
+        <span class="val">{s.config.frequency.toFixed(1)}</span>
       </div>
       <div class="field">
         <label>Persistence</label>
-        <input type="range" min="0.1" max="0.9" step="0.05" bind:value={terrainConfig.persistence} />
-        <span class="val">{terrainConfig.persistence.toFixed(2)}</span>
+        <input type="range" min="0.1" max="0.9" step="0.05" bind:value={s.config.persistence} />
+        <span class="val">{s.config.persistence.toFixed(2)}</span>
       </div>
       <div class="field">
         <label>Lacunarity</label>
-        <input type="range" min="1" max="4" step="0.1" bind:value={terrainConfig.lacunarity} />
-        <span class="val">{terrainConfig.lacunarity.toFixed(1)}</span>
+        <input type="range" min="1" max="4" step="0.1" bind:value={s.config.lacunarity} />
+        <span class="val">{s.config.lacunarity.toFixed(1)}</span>
       </div>
       <div class="field">
         <label>Erosion passes</label>
-        <input type="range" min="0" max="20" step="1" bind:value={terrainConfig.erosionPasses} />
-        <span class="val">{terrainConfig.erosionPasses}</span>
+        <input type="range" min="0" max="20" step="1" bind:value={s.config.erosionPasses} />
+        <span class="val">{s.config.erosionPasses}</span>
       </div>
     </div>
   {/if}
@@ -75,9 +75,9 @@
   <button
     class="gen-btn"
     onclick={generateTerrain}
-    disabled={generating}
+    disabled={s.generating}
   >
-    {generating ? '⏳ Generating…' : '⚡ Generate World'}
+    {s.generating ? '⏳ Generating…' : '⚡ Generate World'}
   </button>
 </div>
 

@@ -43,9 +43,11 @@ pub struct WgpuContext {
     pub brush_bind_group_layout: wgpu::BindGroupLayout,
     pub brush_bind_group: wgpu::BindGroup,
 
-    // Sampler
+    // Samplers
     sampler_linear: wgpu::Sampler,
     sampler_nearest: wgpu::Sampler,
+    /// NonFiltering sampler used for R32Float textures (heightmap, flow)
+    sampler_nonfilter: wgpu::Sampler,
 }
 
 // ── Uniform structs (must be Pod + Zeroable for bytemuck) ────────────────────
@@ -150,6 +152,18 @@ impl WgpuContext {
             ..Default::default()
         });
 
+        // R32Float textures do NOT support filtering on most adapters unless
+        // TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES is enabled.  Use a
+        // NonFiltering sampler (Nearest) for the heightmap and flow textures.
+        let sampler_nonfilter = device.create_sampler(&wgpu::SamplerDescriptor {
+            label: Some("nonfilter sampler"),
+            address_mode_u: wgpu::AddressMode::ClampToEdge,
+            address_mode_v: wgpu::AddressMode::ClampToEdge,
+            mag_filter: wgpu::FilterMode::Nearest,
+            min_filter: wgpu::FilterMode::Nearest,
+            ..Default::default()
+        });
+
         // ── Placeholder textures (1×1) — overwritten when terrain generates ──
         let (heightmap_texture, heightmap_view) =
             Self::create_heightmap_texture(&device, 1, 1);
@@ -200,25 +214,25 @@ impl WgpuContext {
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 label: Some("render bgl"),
                 entries: &[
-                    // binding 0: heightmap texture
+                    // binding 0: heightmap texture (R32Float — NonFilterable)
                     wgpu::BindGroupLayoutEntry {
                         binding: 0,
                         visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
                             view_dimension: wgpu::TextureViewDimension::D2,
                             multisampled: false,
                         },
                         count: None,
                     },
-                    // binding 1: sampler (linear)
+                    // binding 1: heightmap sampler (NonFiltering to match R32Float)
                     wgpu::BindGroupLayoutEntry {
                         binding: 1,
                         visibility: wgpu::ShaderStages::FRAGMENT,
-                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+                        ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::NonFiltering),
                         count: None,
                     },
-                    // binding 2: color ramp
+                    // binding 2: color ramp (Rgba8Unorm — filterable ok)
                     wgpu::BindGroupLayoutEntry {
                         binding: 2,
                         visibility: wgpu::ShaderStages::FRAGMENT,
@@ -229,12 +243,12 @@ impl WgpuContext {
                         },
                         count: None,
                     },
-                    // binding 3: flow texture
+                    // binding 3: flow texture (R32Float — NonFilterable)
                     wgpu::BindGroupLayoutEntry {
                         binding: 3,
                         visibility: wgpu::ShaderStages::FRAGMENT,
                         ty: wgpu::BindingType::Texture {
-                            sample_type: wgpu::TextureSampleType::Float { filterable: true },
+                            sample_type: wgpu::TextureSampleType::Float { filterable: false },
                             view_dimension: wgpu::TextureViewDimension::D2,
                             multisampled: false,
                         },
@@ -258,7 +272,7 @@ impl WgpuContext {
             &device,
             &render_bind_group_layout,
             &heightmap_view,
-            &sampler_linear,
+            &sampler_nonfilter,
             &color_ramp_view,
             &flow_view,
             &uniform_buffer,
@@ -396,6 +410,7 @@ impl WgpuContext {
             brush_bind_group,
             sampler_linear,
             sampler_nearest,
+            sampler_nonfilter,
         })
     }
 
@@ -667,7 +682,7 @@ impl WgpuContext {
             &self.device,
             &self.render_bind_group_layout,
             &self.heightmap_view,
-            &self.sampler_linear,
+            &self.sampler_nonfilter,
             &self.color_ramp_view,
             &self.flow_view,
             &self.uniform_buffer,

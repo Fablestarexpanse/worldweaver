@@ -1,19 +1,21 @@
 <script lang="ts">
-  import * as store from '$lib/stores/terrain';
+  import { s, updateBrushParams } from '$lib/stores/terrain.svelte';
 
-  // Local copies of store state — Svelte 5 can't bind:value directly to imported $state runes
-  let radius   = $state(store.brushRadius);
-  let strength = $state(store.brushStrength);
-  let flatten  = $state(store.flattenTarget);
-  let noise    = $state(store.noiseScale);
+  // Local copies so we can bind:value without binding to object properties that
+  // might not trigger $effect chains perfectly across components.
+  // We sync them back to the store on every change via $effect.
+  let radius   = $state(s.brushRadius);
+  let strength = $state(s.brushStrength);
+  let flatten  = $state(s.flattenTarget);
+  let noise    = $state(s.noiseScale);
 
   // Push local values back to store + Tauri whenever they change
   $effect(() => {
-    store.brushRadius   = radius;
-    store.brushStrength = strength;
-    store.flattenTarget = flatten;
-    store.noiseScale    = noise;
-    void store.updateBrushParams();
+    s.brushRadius   = radius;
+    s.brushStrength = strength;
+    s.flattenTarget = flatten;
+    s.noiseScale    = noise;
+    void updateBrushParams();
   });
 </script>
 
@@ -36,7 +38,7 @@
     </div>
   </div>
 
-  {#if store.activeTool === 'flatten'}
+  {#if s.activeTool === 'flatten'}
     <div class="field">
       <label>Flatten target</label>
       <div class="row">
@@ -46,7 +48,7 @@
     </div>
   {/if}
 
-  {#if store.activeTool === 'noise'}
+  {#if s.activeTool === 'noise'}
     <div class="field">
       <label>Noise scale</label>
       <div class="row">
@@ -56,7 +58,7 @@
     </div>
   {/if}
 
-  {#if !store.activeTool}
+  {#if !s.activeTool}
     <p class="hint">Select a tool above to start painting</p>
   {/if}
 </div>

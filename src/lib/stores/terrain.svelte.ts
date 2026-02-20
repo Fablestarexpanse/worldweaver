@@ -1,5 +1,7 @@
-// ── stores/terrain.ts ─────────────────────────────────────────────────────────
+// ── stores/terrain.svelte.ts ──────────────────────────────────────────────────
 // Svelte 5 runes-based stores for terrain state shared across UI components.
+// Uses a single exported $state object so properties can be mutated freely
+// without hitting the "state_invalid_export" rune restriction.
 
 import { invoke } from '@tauri-apps/api/core';
 
@@ -54,50 +56,64 @@ export const DEFAULT_CONFIG: TerrainConfig = {
   sunAzimuth:      315,
 };
 
-// ── Reactive state (Svelte 5 runes) ──────────────────────────────────────────
+// ── Single reactive state object ──────────────────────────────────────────────
+// All fields are mutated in-place (obj.prop = val) — never reassign `s` itself.
 
-export let terrainConfig = $state<TerrainConfig>({ ...DEFAULT_CONFIG });
-export let terrainInfo   = $state<GenerateResult | null>(null);
-export let activeTool    = $state<BrushTool | null>(null);
-export let brushRadius   = $state(30);
-export let brushStrength = $state(0.5);
-export let flattenTarget = $state(0.5);
-export let noiseScale    = $state(0.05);
-export let status        = $state('Ready');
-export let statusClass   = $state('');
-export let generating    = $state(false);
+export const s = $state({
+  // Terrain generation config (bound to GeneratePanel inputs)
+  config: { ...DEFAULT_CONFIG } as TerrainConfig,
+
+  // Result info shown in header after generation
+  terrainInfo: null as GenerateResult | null,
+
+  // Active brush tool
+  activeTool: null as BrushTool | null,
+
+  // Brush parameters
+  brushRadius:   30,
+  brushStrength: 0.5,
+  flattenTarget: 0.5,
+  noiseScale:    0.05,
+
+  // Status bar
+  status:      'Ready',
+  statusClass: '',
+
+  // Generation in-progress flag
+  generating: false,
+});
 
 // ── Actions ───────────────────────────────────────────────────────────────────
 
 export async function generateTerrain() {
-  generating = true;
-  status = 'Generating terrain…';
-  statusClass = 'busy';
+  s.generating  = true;
+  s.status      = 'Generating terrain…';
+  s.statusClass = 'busy';
   try {
-    const result: GenerateResult = await invoke('generate_terrain', { config: terrainConfig });
-    terrainInfo = result;
-    status = `World ${result.worldWidth}×${result.worldHeight} ready`;
-    statusClass = 'ok';
+    const result = await invoke<GenerateResult>('generate_terrain', { config: s.config });
+    s.terrainInfo = result;
+    s.status      = `World ${result.worldWidth}×${result.worldHeight} ready`;
+    s.statusClass = 'ok';
   } catch (e) {
-    status = `Error: ${e}`;
-    statusClass = 'err';
+    s.status      = `Error: ${e}`;
+    s.statusClass = 'err';
   } finally {
-    generating = false;
+    s.generating = false;
   }
 }
 
 export async function selectTool(tool: BrushTool | null) {
-  activeTool = tool;
+  s.activeTool = tool;
   await invoke('set_active_tool', { tool }).catch(console.error);
 }
 
 export async function updateBrushParams() {
   await invoke('set_brush_params', {
     params: {
-      radius:        brushRadius,
-      strength:      brushStrength,
-      flattenTarget: flattenTarget,
-      noiseScale:    noiseScale,
+      radius:        s.brushRadius,
+      strength:      s.brushStrength,
+      flattenTarget: s.flattenTarget,
+      noiseScale:    s.noiseScale,
     }
   }).catch(console.error);
 }
@@ -111,41 +127,41 @@ export async function resetView() {
 }
 
 export async function saveWorld(path: string) {
-  status = 'Saving…';
-  statusClass = 'busy';
+  s.status      = 'Saving…';
+  s.statusClass = 'busy';
   try {
     await invoke('save_world', { path });
-    status = 'World saved';
-    statusClass = 'ok';
+    s.status      = 'World saved';
+    s.statusClass = 'ok';
   } catch (e) {
-    status = `Save failed: ${e}`;
-    statusClass = 'err';
+    s.status      = `Save failed: ${e}`;
+    s.statusClass = 'err';
   }
 }
 
 export async function loadWorld(path: string) {
-  status = 'Loading…';
-  statusClass = 'busy';
+  s.status      = 'Loading…';
+  s.statusClass = 'busy';
   try {
-    const result: GenerateResult = await invoke('load_world', { path });
-    terrainInfo = result;
-    status = `World ${result.worldWidth}×${result.worldHeight} loaded`;
-    statusClass = 'ok';
+    const result = await invoke<GenerateResult>('load_world', { path });
+    s.terrainInfo = result;
+    s.status      = `World ${result.worldWidth}×${result.worldHeight} loaded`;
+    s.statusClass = 'ok';
   } catch (e) {
-    status = `Load failed: ${e}`;
-    statusClass = 'err';
+    s.status      = `Load failed: ${e}`;
+    s.statusClass = 'err';
   }
 }
 
 export async function addVolcanoes(count: number, radius: number, height: number) {
-  status = 'Adding volcanoes…';
-  statusClass = 'busy';
+  s.status      = 'Adding volcanoes…';
+  s.statusClass = 'busy';
   try {
     await invoke('generate_volcanoes', { config: { count, radius, height } });
-    status = `${count} volcano(es) stamped`;
-    statusClass = 'ok';
+    s.status      = `${count} volcano(es) stamped`;
+    s.statusClass = 'ok';
   } catch (e) {
-    status = `Volcano error: ${e}`;
-    statusClass = 'err';
+    s.status      = `Volcano error: ${e}`;
+    s.statusClass = 'err';
   }
 }

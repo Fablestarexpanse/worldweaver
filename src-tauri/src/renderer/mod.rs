@@ -19,11 +19,24 @@ use winit::{
     window::{Window, WindowAttributes, WindowId},
 };
 
+#[cfg(target_os = "windows")]
+use winit::platform::windows::EventLoopBuilderExtWindows;
+
 /// Entry point for the dedicated wgpu render thread.
 /// Creates a native window (no WebView), initialises wgpu on it,
 /// then runs the event/render loop forever.
 pub fn run_render_window(_app: AppHandle, state: Arc<Mutex<AppState>>) {
+    // On Windows, winit panics if EventLoop is created off the main thread.
+    // Tauri owns the main thread, so we use any_thread() for our render thread.
+    #[cfg(target_os = "windows")]
+    let event_loop = EventLoop::builder()
+        .with_any_thread(true)
+        .build()
+        .expect("failed to create event loop");
+
+    #[cfg(not(target_os = "windows"))]
     let event_loop = EventLoop::new().expect("failed to create event loop");
+
     event_loop.set_control_flow(ControlFlow::Poll);
 
     let mut app = RenderApp {

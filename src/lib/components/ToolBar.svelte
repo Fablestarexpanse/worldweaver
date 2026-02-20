@@ -1,8 +1,5 @@
 <script lang="ts">
-  import {
-    activeTool, selectTool, undoStroke,
-    type BrushTool
-  } from '$lib/stores/terrain';
+  import { s, selectTool, undoStroke, type BrushTool } from '$lib/stores/terrain.svelte';
 
   const TOOLS: { id: BrushTool; label: string; icon: string; tip: string }[] = [
     { id: 'raise',   label: 'Raise',   icon: '▲', tip: 'Raise terrain' },
@@ -14,7 +11,7 @@
   ];
 
   function toggle(tool: BrushTool) {
-    selectTool(activeTool === tool ? null : tool);
+    selectTool(s.activeTool === tool ? null : tool);
   }
 </script>
 
@@ -23,7 +20,7 @@
   <div class="tool-grid">
     {#each TOOLS as t}
       <button
-        class:active={activeTool === t.id}
+        class:active={s.activeTool === t.id}
         title={t.tip}
         onclick={() => toggle(t.id)}
       >

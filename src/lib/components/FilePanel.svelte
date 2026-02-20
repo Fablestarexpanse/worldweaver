@@ -1,6 +1,6 @@
 <script lang="ts">
   import { open, save } from '@tauri-apps/plugin-dialog';
-  import { saveWorld, loadWorld, addVolcanoes, resetView } from '$lib/stores/terrain';
+  import { saveWorld, loadWorld, addVolcanoes, resetView } from '$lib/stores/terrain.svelte';
 
   let volcCount    = $state(3);
   let volcRadius   = $state(80);
